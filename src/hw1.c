@@ -4,8 +4,11 @@
 #include <stdbool.h>
 #include <ctype.h>
 
+
+// structure definitions
+
 typedef enum
-{ // Node types which will be needed in advance
+{ // Token types which will be needed in lexical analysis
     CONST,
     VAR,
     COMMA,
@@ -26,14 +29,14 @@ typedef enum
     EOI,
 } TokenType;
 
-typedef struct
+typedef struct  // Token structure to create tokens
 {
     TokenType type;
     int number;
     char *id;
 } Token;
 
-typedef struct
+typedef struct  // Node structure, it will be used in creating parse trees
 {
     TokenType type;
     int val;
@@ -42,7 +45,8 @@ typedef struct
     struct node *right;
 } Node;
 
-// char nextOperation(char *ch);
+// global variables and method declarations
+
 int inp_length;
 Token *createToken(char *inp_s, int *token_number);
 
@@ -150,19 +154,15 @@ char peek(char *p) // looks the other char, but does not move the cursor
 }
 
 Token *createToken(char *inp_s, int *token_number) // creates token according to the given input string, one token each time
-{
+{                                                  // returns the list of tokens
     int found_tokens = 0;
     int length = strlen(inp_s);
     char *pcurrent_char = inp_s;
-    Token *token_list = malloc(length * sizeof(Token));
+    Token *token_list = malloc(length * sizeof(Token));  // creates sufficient memory for tokens
 
-    while (*pcurrent_char != '\0')
+    while (*pcurrent_char != '\0')  // iterates until reaching the end of input
     {
-        //printf("%c",*pcurrent_char );
-        // printf("%d\n", count);
-        // count++;
-        // printf("%c\n", *pcurrent_char);
-        switch (*pcurrent_char)
+        switch (*pcurrent_char)  // creates tokens according to current char
         {
         case ' ':
             pcurrent_char++;
@@ -230,13 +230,13 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
             pcurrent_char++;
             break;
         default:
-            if (isdigit(*pcurrent_char))
+            if (isdigit(*pcurrent_char))  
             {
                 int num;
                 num = (*pcurrent_char) - '\0';
                 pcurrent_char++;
-                while (isdigit(*pcurrent_char))
-                {
+                while (isdigit(*pcurrent_char)) // if it is a number, it might be consisted of more than one digit
+                {                               // so it will be iterated until reaching a non-digit char
                     num = num * 10 + *(pcurrent_char) - '\0';
                     pcurrent_char++;
                 }
@@ -245,8 +245,8 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
                 token_list[found_tokens].number = num;
                 found_tokens++;
             }
-            else if (isalpha(*pcurrent_char))
-            {
+            else if (isalpha(*pcurrent_char))  // if it is a letter, it might be consisted of more than one letter
+            {                                   
                 char char_name[256];
                 char_name[0] = *pcurrent_char;
                 int index = 1;
@@ -258,7 +258,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
                     index++;
                 }
                 char_name[index] = '\0';
-                if (strcmp(char_name, "xor") == 0)
+                if (strcmp(char_name, "xor") == 0)  // if it is a special function name, creates the special token
                 {
                     token_list[found_tokens].type = XOR;
                     token_list[found_tokens].id = "XOR";
@@ -296,7 +296,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
 
                 else
                 {
-                    token_list[found_tokens].type = VAR;
+                    token_list[found_tokens].type = VAR;  // if it is not a function name, than it is a variable
                     token_list[found_tokens].id = "VAR";
                 }
                 found_tokens++;
@@ -305,5 +305,5 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
         }
     }
     *token_number = found_tokens;
-    return token_list;
+    return token_list;  // returns the list of tokens
 }
