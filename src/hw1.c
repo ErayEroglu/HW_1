@@ -155,7 +155,7 @@ char peek(char *p) // looks the other char, but does not move the cursor
     return c;
 }
 
-// !!! her tokenizeın sonunda ekstra virgül
+// !!! her tokenizeın sonunda ekstra virgül ve intlerin değeri yanlış
 Token *createToken(char *inp_s, int *token_number) // creates token according to the given input string, one token each time
 {                                                  // returns the list of tokens
     int found_tokens = 0;
