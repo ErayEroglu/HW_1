@@ -52,8 +52,10 @@ Token *createToken(char *inp_s, int *token_number);
 
 int main()
 {
-    char expr[] = "abcd = ls(12,3) * 98 + c";
-    int num_tokens = 9;
+    char expr[256];
+    printf("input : \n");
+    fgets(expr,256,stdin);
+    int num_tokens = strlen(expr);
     Token *tokens = createToken(expr, &num_tokens);
 
     printf("Tokens:\n");
@@ -153,6 +155,7 @@ char peek(char *p) // looks the other char, but does not move the cursor
     return c;
 }
 
+// !!! her tokenizeın sonunda ekstra virgül
 Token *createToken(char *inp_s, int *token_number) // creates token according to the given input string, one token each time
 {                                                  // returns the list of tokens
     int found_tokens = 0;
