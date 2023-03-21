@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-
 // structure definitions
 
 typedef enum
@@ -29,14 +28,14 @@ typedef enum
     EOI,
 } TokenType;
 
-typedef struct  // Token structure to create tokens
+typedef struct // Token structure to create tokens
 {
     TokenType type;
     int number;
     char *id;
 } Token;
 
-typedef struct  // Node structure, it will be used in creating parse trees
+typedef struct // Node structure, it will be used in creating parse trees
 {
     Token tok;
     struct node *left;
@@ -50,11 +49,11 @@ Token *createToken(char *inp_s, int *token_number);
 
 int main()
 {
-    
+
     printf("input : \n");
     int position = 0;
     char expr[256];
-    fgets(expr,256,stdin);
+    fgets(expr, 256, stdin);
     int num_tokens = strlen(expr);
     Token *tokens = createToken(expr, &num_tokens);
 
@@ -160,11 +159,11 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
     int found_tokens = 0;
     int length = strlen(inp_s);
     char *pcurrent_char = inp_s;
-    Token *token_list = malloc(length * sizeof(Token));  // creates sufficient memory for tokens
+    Token *token_list = malloc(length * sizeof(Token)); // creates sufficient memory for tokens
 
-    while (*pcurrent_char != '\0')  // iterates until reaching the end of input
+    while (*pcurrent_char != '\0') // iterates until reaching the end of input
     {
-        switch (*pcurrent_char)  // creates tokens according to current char
+        switch (*pcurrent_char) // creates tokens according to current char
         {
         case ' ':
             pcurrent_char++;
@@ -236,7 +235,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
             pcurrent_char++;
             break;
         default:
-            if (isdigit(*pcurrent_char))  
+            if (isdigit(*pcurrent_char))
             {
                 int num = atoi(pcurrent_char);
                 pcurrent_char++;
@@ -249,8 +248,8 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
                 token_list[found_tokens].number = num;
                 found_tokens++;
             }
-            else if (isalpha(*pcurrent_char))  // if it is a letter, it might be consisted of more than one letter
-            {                                   
+            else if (isalpha(*pcurrent_char)) // if it is a letter, it might be consisted of more than one letter
+            {
                 char char_name[256];
                 char_name[0] = *pcurrent_char;
                 int index = 1;
@@ -262,7 +261,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
                     index++;
                 }
                 char_name[index] = '\0';
-                if (strcmp(char_name, "xor") == 0)  // if it is a special function name, creates the special token
+                if (strcmp(char_name, "xor") == 0) // if it is a special function name, creates the special token
                 {
                     token_list[found_tokens].type = XOR;
                     token_list[found_tokens].id = "XOR";
@@ -300,7 +299,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
 
                 else
                 {
-                    token_list[found_tokens].type = VAR;  // if it is not a function name, than it is a variable
+                    token_list[found_tokens].type = VAR; // if it is not a function name, than it is a variable
                     token_list[found_tokens].id = "VAR";
                 }
                 found_tokens++;
@@ -309,51 +308,62 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
         }
     }
     *token_number = found_tokens;
-    return token_list;  // returns the list of tokens
+    return token_list; // returns the list of tokens
 }
 
+// parsing functions
 
+Node *parseE(Token *ptoken_list, int pos)
+{
 
-
-
-// parsing functions 
-
-*Node parseE() {
-
-
-
+    return NULL;
 }
 
+// *Node parseT() {
 
+// }
 
-*Node parseT() {
+Node *parseF(Token *ptoken_list, int pos)  // parsing factor method
+{
+    if (ptoken_list[pos].type == CONST)  // if the current token matches the type, creates node
+    {
+        Node const_node;
+        const_node.tok = ptoken_list[pos];
+        const_node.left = NULL;
+        const_node.right = NULL;
+        return &const_node;
+    }
 
+    else if (ptoken_list[pos].type == VAR)
+    {
+        Node var_node;
+        var_node.tok = ptoken_list[pos];
+        var_node.left = NULL;
+        var_node.right = NULL;
+        return &var_node;
+    }
 
-
-
-
+    else if (ptoken_list[pos].type == L_PAREN)  // if token is l paren, it must be an expression inside of it
+    {
+        pos++;  // it moves the next token
+        Node *temp = parseE(ptoken_list, pos);
+        // !!! We will probably need an error check here
+        // TODO
+        //
+        if (temp == NULL)  // if there does't exist a statement, return null
+            return NULL;
+        else if (ptoken_list[pos].type == R_PAREN)
+        {
+            pos++;
+            return temp;
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+    else
+    {
+        return NULL;
+    }
 }
-
-
-
-*Node parseF() {
-    Token *ptoken = createToken();
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
