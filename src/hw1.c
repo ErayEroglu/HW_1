@@ -242,7 +242,6 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
                 pcurrent_char++;
                 while (isdigit(*pcurrent_char)) // if it is a number, it might be consisted of more than one digit
                 {                               // so it will be iterated until reaching a non-digit char
-                    //num = num * 10 + atoi(pcurrent_char);
                     pcurrent_char++;
                 }
                 token_list[found_tokens].type = CONST;
