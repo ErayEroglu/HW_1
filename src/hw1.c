@@ -301,6 +301,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
                 {
                     token_list[found_tokens].type = VAR; // if it is not a function name, than it is a variable
                     token_list[found_tokens].id = "VAR";
+                    token_list[found_tokens].number = 0;
                 }
                 found_tokens++;
             }
@@ -319,9 +320,13 @@ Node *parseE(Token *ptoken_list, int pos)
     return NULL;
 }
 
-// *Node parseT() {
+Node *parseT(Token *ptoken_list, int pos) 
+{
+    Node *parsin_factor = parseF(ptoken_list, pos);
+     
 
-// }
+
+}
 
 Node *parseF(Token *ptoken_list, int pos)  // parsing factor method
 {
