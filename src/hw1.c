@@ -38,9 +38,7 @@ typedef struct  // Token structure to create tokens
 
 typedef struct  // Node structure, it will be used in creating parse trees
 {
-    TokenType type;
-    int val;
-    char var;
+    Token tok;
     struct node *left;
     struct node *right;
 } Node;
@@ -52,8 +50,10 @@ Token *createToken(char *inp_s, int *token_number);
 
 int main()
 {
-    char expr[256];
+    
     printf("input : \n");
+    int position = 0;
+    char expr[256];
     fgets(expr,256,stdin);
     int num_tokens = strlen(expr);
     Token *tokens = createToken(expr, &num_tokens);
@@ -311,3 +311,49 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
     *token_number = found_tokens;
     return token_list;  // returns the list of tokens
 }
+
+
+
+
+
+// parsing functions 
+
+*Node parseE() {
+
+
+
+}
+
+
+
+*Node parseT() {
+
+
+
+
+
+}
+
+
+
+*Node parseF() {
+    Token *ptoken = createToken();
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
