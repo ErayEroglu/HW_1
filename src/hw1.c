@@ -155,7 +155,7 @@ char peek(char *p) // looks the other char, but does not move the cursor
     return c;
 }
 
-// !!! her tokenizeın sonunda ekstra virgül ve intlerin değeri yanlış
+// !!! intlerin değeri yanlış
 Token *createToken(char *inp_s, int *token_number) // creates token according to the given input string, one token each time
 {                                                  // returns the list of tokens
     int found_tokens = 0;
@@ -171,11 +171,9 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
             pcurrent_char++;
             break;
         case '\t':
+            pcurrent_char++;
+            break;
         case '\n':
-        case ',':
-            token_list[found_tokens].type = COMMA;
-            token_list[found_tokens].id = "COMMA";
-            found_tokens++;
             pcurrent_char++;
             break;
         case '+':
@@ -229,6 +227,12 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
         case '=':
             token_list[found_tokens].type = EQUAL;
             token_list[found_tokens].id = "EQUAL";
+            found_tokens++;
+            pcurrent_char++;
+            break;
+        case ',':
+            token_list[found_tokens].type = COMMA;
+            token_list[found_tokens].id = "COMMA";
             found_tokens++;
             pcurrent_char++;
             break;
