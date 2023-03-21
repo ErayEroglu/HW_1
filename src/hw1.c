@@ -28,6 +28,24 @@ typedef enum
     EOI,
 } TokenType;
 
+typedef enum
+{
+    CONST,
+    VAR,
+    ADDITION,
+    SUBTRACTION,
+    MULTIPLICATION,
+    AND,
+    OR,
+    XOR,
+    EQUAL,
+    L_SHIFT,
+    R_SHIFT,
+    L_ROTATE,
+    R_ROTATE,
+    NOT
+} Operator;
+
 typedef struct // Token structure to create tokens
 {
     TokenType type;
@@ -37,15 +55,18 @@ typedef struct // Token structure to create tokens
 
 typedef struct // Node structure, it will be used in creating parse trees
 {
-    Token tok;
-    struct node *left;
-    struct node *right;
+    Operator op;
+    int *value;
+    Node *left;
+    Node *right;
 } Node;
 
 // global variables and method declarations
 
-int inp_length;
 Token *createToken(char *inp_s, int *token_number);
+int evaluate(Node *nodeP);
+Node *createNode(Token *token, Node *left, Node *right);
+Node *constructNode(Operator op, int *value, Node *left, Node *right);
 
 int main()
 {
@@ -56,14 +77,15 @@ int main()
     fgets(expr, 256, stdin);
     int num_tokens = strlen(expr);
     Token *tokens = createToken(expr, &num_tokens);
+    int b = 12;
+    addition(b, 15);
+    // printf("Tokens:\n");
+    // for (int i = 0; i < num_tokens; i++)
+    // {
+    //     printf("Token %d: type=%d, id=%s, number=%d\n", i, tokens[i].type, tokens[i].id, tokens[i].number);
+    // }
 
-    printf("Tokens:\n");
-    for (int i = 0; i < num_tokens; i++)
-    {
-        printf("Token %d: type=%d, id=%s, number=%d\n", i, tokens[i].type, tokens[i].id, tokens[i].number);
-    }
-
-    printf("\n");
+    // printf("\n");
 
     free(tokens);
     return 45;
@@ -73,6 +95,7 @@ int main()
 
 int addition(int a, int b)
 {
+    b++;
     return a + b;
 }
 int subtraction(int a, int b)
@@ -312,54 +335,81 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
     return token_list; // returns the list of tokens
 }
 
+Node *constructNode(Operator op, int *value, Node *left, Node *right)
+{
+    Node *node;
+    node->op = op;
+    node->value = value;
+    node->left = left;
+    node->right = right;
+
+    return node;
+}
+
+Node *createNode(Token *token, Node *left, Node *right)
+{
+    Operator op = token->type;
+    int *value = &token->number;
+    return constructNode(op, value, left, right);
+}
+
 // parsing functions
 
-Node *parseE(Token *ptoken_list, int pos)
+Node *parseE(Token *ptoken_list, int *pos)
 {
-
-    return NULL;
+    Node *parsing_term = parseT(ptoken_list, pos);
+    while (ptoken_list[*pos].type == ADDITION || ptoken_list[*pos].type == SUBTRACTION)
+    {
+        (*pos)++;
+        Node *parsing_term2 = parseT(ptoken_list, pos);
+        parsing_term = createNode(&(ptoken_list[*pos]), parsing_term, parsing_term2);
+    }
 }
 
-Node *parseT(Token *ptoken_list, int pos) 
+Node *parseT(Token *ptoken_list, int *pos)
 {
-    Node *parsin_factor = parseF(ptoken_list, pos);
-     
-
-
+    Node *parsing_factor = parseF(ptoken_list, pos);
+    while (ptoken_list[*pos].type == MULTIPLICATION)
+    {
+        (*pos)++;
+        Node *parsing_factor2 = parseF(ptoken_list, pos);
+        parsing_factor = createNode(&(ptoken_list[*pos]), parsing_factor, parsing_factor2);
+    }
+    return parsing_factor;
 }
 
-Node *parseF(Token *ptoken_list, int pos)  // parsing factor method
+Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
 {
-    if (ptoken_list[pos].type == CONST)  // if the current token matches the type, creates node
+    if (ptoken_list[*pos].type == CONST) // if the current token matches the type, creates node
     {
         Node const_node;
-        const_node.tok = ptoken_list[pos];
+        const_node.tok = ptoken_list[*pos];
         const_node.left = NULL;
         const_node.right = NULL;
         return &const_node;
     }
 
-    else if (ptoken_list[pos].type == VAR)
+    else if (ptoken_list[*pos].type == VAR)
     {
         Node var_node;
-        var_node.tok = ptoken_list[pos];
+        var_node.tok = ptoken_list[*pos];
         var_node.left = NULL;
         var_node.right = NULL;
         return &var_node;
     }
 
-    else if (ptoken_list[pos].type == L_PAREN)  // if token is l paren, it must be an expression inside of it
+    else if (ptoken_list[*pos].type == L_PAREN) // if token is l paren, it must be an expression inside of it
     {
-        pos++;  // it moves the next token
+        (*pos)++; // it moves the next token
         Node *temp = parseE(ptoken_list, pos);
         // !!! We will probably need an error check here
         // TODO
         //
-        if (temp == NULL)  // if there does't exist a statement, return null
+        if (temp == NULL) // if there does't exist a statement, return null
             return NULL;
-        else if (ptoken_list[pos].type == R_PAREN)
+        else if (ptoken_list[*pos].type == R_PAREN)
         {
-            pos++;
+            (*pos)++;
             return temp;
         }
         else
@@ -370,5 +420,92 @@ Node *parseF(Token *ptoken_list, int pos)  // parsing factor method
     else
     {
         return NULL;
+    }
+}
+
+// method to evaluate the tree
+int evaluate(Node *nodeP)
+{
+
+    // start evaluating at root node, evaluate the tree recursively
+
+    // binary operations
+    if (nodeP->op == ADDITION)
+    {
+        return evaluate(nodeP->left) + evaluate(nodeP->right);
+    }
+    else if (nodeP->op == SUBTRACTION)
+    {
+        return evaluate(nodeP->left) - evaluate(nodeP->right);
+    }
+    else if (nodeP->op == MULTIPLICATION)
+    {
+        return evaluate(nodeP->left) * evaluate(nodeP->right);
+    }
+
+    else if (nodeP->op == CONST)
+    {
+        return *(nodeP->value);
+    }
+    else if (nodeP->op == VAR)
+    {
+    }
+    // return -1 means error
+    else if (nodeP->op == EQUAL)
+    {
+        Node *pLeft;
+        pLeft = nodeP->left;
+
+        // error condition
+        if (pLeft->op != VAR)
+        {
+            // print error
+            return -1;
+        }
+        *(pLeft->value) = evaluate(nodeP->right);
+
+        return NULL;
+    }
+
+    // bitwise binary operations
+    else if (nodeP->op == AND)
+    {
+        return evaluate(nodeP->left) & evaluate(nodeP->right);
+    }
+    else if (nodeP->op == OR)
+    {
+        return evaluate(nodeP->left) | evaluate(nodeP->right);
+    }
+    // function with one parameter
+    else if (nodeP->op == NOT)
+    {
+        // update after parse implementation
+        return 0;
+    }
+
+    // functions with two parameters
+    else
+    {
+        Node *pLeft = nodeP->left;
+        Node *pRight = nodeP->right;
+        3 bool syntaxError = false;
+        if (pLeft->op != VAR || pLeft->op != CONST)
+            switch (nodeP->op)
+            {
+            case XOR:
+                return evaluate(nodeP->left) ^ evaluate(nodeP->right);
+                break;
+            case L_SHIFT:
+                return evaluate(nodeP->left) << evaluate(nodeP->right);
+            case R_SHIFT:
+                return evaluate(nodeP->left) >> evaluate(nodeP->right);
+            case L_ROTATE:
+                return (evaluate(nodeP->left) << evaluate(nodeP->right)) | (evaluate(nodeP->left) >> (32 - evaluate(nodeP->right)));
+            case R_ROTATE:
+                return (evaluate(nodeP->left) >> evaluate(nodeP->right)) | (evaluate(nodeP->left) << (32 - evaluate(nodeP->right)));
+            default:
+                return -1;
+                break;
+            }
     }
 }
