@@ -155,7 +155,6 @@ char peek(char *p) // looks the other char, but does not move the cursor
     return c;
 }
 
-// !!! intlerin değeri yanlış
 Token *createToken(char *inp_s, int *token_number) // creates token according to the given input string, one token each time
 {                                                  // returns the list of tokens
     int found_tokens = 0;
@@ -239,12 +238,11 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
         default:
             if (isdigit(*pcurrent_char))  
             {
-                int num;
-                num = (*pcurrent_char) - '\0';
+                int num = atoi(pcurrent_char);
                 pcurrent_char++;
                 while (isdigit(*pcurrent_char)) // if it is a number, it might be consisted of more than one digit
                 {                               // so it will be iterated until reaching a non-digit char
-                    num = num * 10 + *(pcurrent_char) - '\0';
+                    //num = num * 10 + atoi(pcurrent_char);
                     pcurrent_char++;
                 }
                 token_list[found_tokens].type = CONST;
