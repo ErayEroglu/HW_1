@@ -58,6 +58,7 @@ typedef struct // Node structure, it will be used in creating parse trees
 {
     Operator op;
     int *value;
+    char *name;
     Node *left;
     Node *right;
 } Node;
@@ -73,7 +74,10 @@ typedef struct // struct for a hashtable
 Token *createToken(char *inp_s, int *token_number);
 int evaluate(Node *nodeP);
 Node *createNode(Token *token, Node *left, Node *right);
-Node *constructNode(Operator op, int *value, Node *left, Node *right);
+Node *constructNode(Operator op, int *value, char *name, Node *left, Node *right);
+Node *parseF(Token *ptoken_list, int *pos);
+Node *parseT(Token *ptoken_list, int *pos);
+Node *parseE(Token *ptoken_list, int *pos);
 int const HASH_SIZE = 1000;
 Variable *hashMap[HASH_SIZE];
 int hashFunction(char *s);
@@ -131,14 +135,14 @@ char peek(char *p) // looks the other char, but does not move the cursor
 int hashFunction(char *p)
 {
     char *s = NULL;
-    s = p;   
+    s = p;
     int hashval;
     for (hashval = 0; *s != '\0'; s++)
         hashval = *s + 31 * hashval;
     return hashval % HASH_SIZE;
 }
 
-Variable *search(char* pkey)
+Variable *search(char *pkey) // searches for the var name, if it exists returns the variable
 {
     int key = hashFunction(pkey);
     while (hashMap[key] != NULL)
@@ -154,8 +158,8 @@ Variable *search(char* pkey)
     return NULL;
 }
 
-void insert(char *key, int data)
-{ // inserting function for hashmap
+void insert(char *key, int data) // inserting function for hashmap
+{
     Variable *var = (Variable *)malloc(sizeof(Variable));
     var->data = data;
     var->key = key;
@@ -328,11 +332,12 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
     return token_list; // returns the list of tokens
 }
 
-Node *constructNode(Operator op, int *value, Node *left, Node *right)
+Node *constructNode(Operator op, int *value, char *name, Node *left, Node *right)
 {
     Node *node;
     node->op = op;
     node->value = value;
+    node->name = name;
     node->left = left;
     node->right = right;
 
@@ -343,7 +348,8 @@ Node *createNode(Token *token, Node *left, Node *right) // calls node constructo
 {
     Operator op = token->type;
     int *value = &token->number;
-    return constructNode(op, value, left, right);
+    char *name = token->name;
+    return constructNode(op, value, name, left, right);
 }
 
 // parsing functions
@@ -374,22 +380,10 @@ Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
 Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
 {
     if (ptoken_list[*pos].type == CONST) // if the current token matches the type, creates node
-    {
-        Node const_node;
-        const_node.tok = ptoken_list[*pos];
-        const_node.left = NULL;
-        const_node.right = NULL;
-        return &const_node;
-    }
+        return createNode(&ptoken_list[*pos], NULL, NULL);
 
     else if (ptoken_list[*pos].type == VAR)
-    {
-        Node var_node;
-        var_node.tok = ptoken_list[*pos];
-        var_node.left = NULL;
-        var_node.right = NULL;
-        return &var_node;
-    }
+        return createNode( &ptoken_list[*pos],NULL, NULL);
 
     else if (ptoken_list[*pos].type == L_PAREN) // if token is l paren, it must be an expression inside of it
     {
@@ -442,6 +436,13 @@ int evaluate(Node *nodeP)
     }
     else if (nodeP->op == VAR)
     {
+        Variable *var = search(nodeP->name);
+
+        if (var != NULL)
+        {
+            return var->data;
+        }
+        return 0;
     }
     // return -1 means error
     else if (nodeP->op == EQUAL)
@@ -481,7 +482,7 @@ int evaluate(Node *nodeP)
     {
         Node *pLeft = nodeP->left;
         Node *pRight = nodeP->right;
-        3 bool syntaxError = false;
+        bool syntaxError = false;
         if (pLeft->op != VAR || pLeft->op != CONST)
             switch (nodeP->op)
             {
