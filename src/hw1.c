@@ -28,8 +28,8 @@ typedef enum
     EOI,
 } TokenType;
 
-typedef enum
-{
+typedef enum // operator types 
+{  
     CONST,
     VAR,
     ADDITION,
@@ -77,75 +77,16 @@ int main()
     fgets(expr, 256, stdin);
     int num_tokens = strlen(expr);
     Token *tokens = createToken(expr, &num_tokens);
-    int b = 12;
-    addition(b, 15);
-    // printf("Tokens:\n");
-    // for (int i = 0; i < num_tokens; i++)
-    // {
-    //     printf("Token %d: type=%d, id=%s, number=%d\n", i, tokens[i].type, tokens[i].id, tokens[i].number);
-    // }
+    printf("Tokens:\n");
+    for (int i = 0; i < num_tokens; i++)
+    {
+        printf("Token %d: type=%d, id=%s, number=%d\n", i, tokens[i].type, tokens[i].id, tokens[i].number);
+    }
 
-    // printf("\n");
+    printf("\n");
 
     free(tokens);
     return 45;
-}
-
-// operations
-
-int addition(int a, int b)
-{
-    b++;
-    return a + b;
-}
-int subtraction(int a, int b)
-{
-    return a - b;
-}
-
-int multiplication(int a, int b)
-{
-    return a * b;
-}
-
-int bitwiseAnd(int a, int b)
-{
-    return a & b;
-}
-
-int bitwiseOr(int a, int b)
-{
-    return a || b;
-}
-
-int bitwiseXor(int a, int b)
-{
-    return a ^ b;
-}
-
-int complement(int a)
-{
-    return ~a;
-}
-
-int leftShift(int a, int i)
-{
-    return a << i;
-}
-
-int rightShift(int a, int i)
-{
-    return a >> i;
-}
-
-int leftRotate(int a, int i)
-{
-    // TODO
-}
-
-int rightRotate(int a, int i)
-{
-    // TODO
 }
 
 // helper methods
@@ -335,7 +276,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
     return token_list; // returns the list of tokens
 }
 
-Node *constructNode(Operator op, int *value, Node *left, Node *right)
+Node *constructNode(Operator op, int *value, Node *left, Node *right) 
 {
     Node *node;
     node->op = op;
@@ -346,7 +287,7 @@ Node *constructNode(Operator op, int *value, Node *left, Node *right)
     return node;
 }
 
-Node *createNode(Token *token, Node *left, Node *right)
+Node *createNode(Token *token, Node *left, Node *right)  // calls node constructor and creates node
 {
     Operator op = token->type;
     int *value = &token->number;
@@ -355,7 +296,7 @@ Node *createNode(Token *token, Node *left, Node *right)
 
 // parsing functions
 
-Node *parseE(Token *ptoken_list, int *pos)
+Node *parseE(Token *ptoken_list, int *pos)  // parses expression into terms
 {
     Node *parsing_term = parseT(ptoken_list, pos);
     while (ptoken_list[*pos].type == ADDITION || ptoken_list[*pos].type == SUBTRACTION)
@@ -366,7 +307,7 @@ Node *parseE(Token *ptoken_list, int *pos)
     }
 }
 
-Node *parseT(Token *ptoken_list, int *pos)
+Node *parseT(Token *ptoken_list, int *pos)  // parses term into factors
 {
     Node *parsing_factor = parseF(ptoken_list, pos);
     while (ptoken_list[*pos].type == MULTIPLICATION)
