@@ -81,13 +81,9 @@ int main()
     }
 
     printf("\n");
-    printf("here\n");
     Node *pnode = parseE(tokens,ppos);
-    printf("arada\n");
     printf("%d", *(pnode->value));
-    int res = evaluate(pnode);
-    printf("gecti\n");
-    
+    int res = evaluate(pnode);    
     printf("%d", res);
 
     free(tokens);
@@ -95,25 +91,6 @@ int main()
 }
 
 // helper methods
-
-// char nextOperation(char *ch)
-// {
-//     while (1)
-//     {
-//         printf("inner while \n");
-//         if (*ch == ' ')
-//             continue;
-//         else if (*ch == '+' || *ch == '-' || *ch == '*' || *ch == '&' || *ch == '|')
-//             return *ch;
-//         else if (*ch == 'x')
-//         {
-//             if (*(ch++) == 'o' && *(ch++) == 'r')
-//                 return *ch;
-//         }
-//         else
-//             break;
-//     }
-// }
 
 char peek(char *p) // looks the other char, but does not move the cursor
 {
