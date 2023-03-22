@@ -28,8 +28,8 @@ typedef enum
     EOI,
 } TokenType;
 
-typedef enum // operator types 
-{  
+typedef enum // operator types
+{
     CONST,
     VAR,
     ADDITION,
@@ -51,6 +51,7 @@ typedef struct // Token structure to create tokens
     TokenType type;
     int number;
     char *id;
+    char *name;
 } Token;
 
 typedef struct // Node structure, it will be used in creating parse trees
@@ -61,12 +62,21 @@ typedef struct // Node structure, it will be used in creating parse trees
     Node *right;
 } Node;
 
+typedef struct // struct for a hashtable
+{
+    int data;
+    char *key;
+} Variable;
+
 // global variables and method declarations
 
 Token *createToken(char *inp_s, int *token_number);
 int evaluate(Node *nodeP);
 Node *createNode(Token *token, Node *left, Node *right);
 Node *constructNode(Operator op, int *value, Node *left, Node *right);
+int const HASH_SIZE = 1000;
+Variable *hashMap[HASH_SIZE];
+int hashFunction(char *s);
 
 int main()
 {
@@ -116,6 +126,47 @@ char peek(char *p) // looks the other char, but does not move the cursor
     char c = *p;
     p--;
     return c;
+}
+
+int hashFunction(char *p)
+{
+    char *s = NULL;
+    s = p;   
+    int hashval;
+    for (hashval = 0; *s != '\0'; s++)
+        hashval = *s + 31 * hashval;
+    return hashval % HASH_SIZE;
+}
+
+Variable *search(char* pkey)
+{
+    int key = hashFunction(pkey);
+    while (hashMap[key] != NULL)
+    {
+        if (hashMap[key]->key == key)
+        {
+            return hashMap[key];
+        }
+        key++;
+
+        key %= HASH_SIZE;
+    }
+    return NULL;
+}
+
+void insert(char *key, int data)
+{ // inserting function for hashmap
+    Variable *var = (Variable *)malloc(sizeof(Variable));
+    var->data = data;
+    var->key = key;
+    int hash_pos = hashFunction(key);
+
+    while (hashMap[hash_pos] != NULL)
+    {
+        hash_pos++;
+        hash_pos %= HASH_SIZE;
+    }
+    hashMap[hash_pos] = var;
 }
 
 Token *createToken(char *inp_s, int *token_number) // creates token according to the given input string, one token each time
@@ -265,6 +316,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
                 {
                     token_list[found_tokens].type = VAR; // if it is not a function name, than it is a variable
                     token_list[found_tokens].id = "VAR";
+                    token_list[found_tokens].name = char_name;
                     token_list[found_tokens].number = 0;
                 }
                 found_tokens++;
@@ -276,7 +328,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
     return token_list; // returns the list of tokens
 }
 
-Node *constructNode(Operator op, int *value, Node *left, Node *right) 
+Node *constructNode(Operator op, int *value, Node *left, Node *right)
 {
     Node *node;
     node->op = op;
@@ -287,7 +339,7 @@ Node *constructNode(Operator op, int *value, Node *left, Node *right)
     return node;
 }
 
-Node *createNode(Token *token, Node *left, Node *right)  // calls node constructor and creates node
+Node *createNode(Token *token, Node *left, Node *right) // calls node constructor and creates node
 {
     Operator op = token->type;
     int *value = &token->number;
@@ -296,7 +348,7 @@ Node *createNode(Token *token, Node *left, Node *right)  // calls node construct
 
 // parsing functions
 
-Node *parseE(Token *ptoken_list, int *pos)  // parses expression into terms
+Node *parseE(Token *ptoken_list, int *pos) // parses expression into terms
 {
     Node *parsing_term = parseT(ptoken_list, pos);
     while (ptoken_list[*pos].type == ADDITION || ptoken_list[*pos].type == SUBTRACTION)
@@ -307,7 +359,7 @@ Node *parseE(Token *ptoken_list, int *pos)  // parses expression into terms
     }
 }
 
-Node *parseT(Token *ptoken_list, int *pos)  // parses term into factors
+Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
 {
     Node *parsing_factor = parseF(ptoken_list, pos);
     while (ptoken_list[*pos].type == MULTIPLICATION)
