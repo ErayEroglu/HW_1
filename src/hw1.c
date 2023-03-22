@@ -28,23 +28,6 @@ typedef enum
     EOI,
 } TokenType;
 
-typedef enum // operator types
-{
-    CONST,
-    VAR,
-    ADDITION,
-    SUBTRACTION,
-    MULTIPLICATION,
-    AND,
-    OR,
-    XOR,
-    EQUAL,
-    L_SHIFT,
-    R_SHIFT,
-    L_ROTATE,
-    R_ROTATE,
-    NOT
-} Operator;
 
 typedef struct // Token structure to create tokens
 {
@@ -56,11 +39,11 @@ typedef struct // Token structure to create tokens
 
 typedef struct // Node structure, it will be used in creating parse trees
 {
-    Operator op;
+    TokenType op;
     int *value;
     char *name;
-    Node *left;
-    Node *right;
+    struct Node *left;
+    struct Node *right;
 } Node;
 
 typedef struct // struct for a hashtable
@@ -74,7 +57,7 @@ typedef struct // struct for a hashtable
 Token *createToken(char *inp_s, int *token_number);
 int evaluate(Node *nodeP);
 Node *createNode(Token *token, Node *left, Node *right);
-Node *constructNode(Operator op, int *value, char *name, Node *left, Node *right);
+Node *constructNode(TokenType op, int *value, char *name, Node *left, Node *right);
 Node *parseF(Token *ptoken_list, int *pos);
 Node *parseT(Token *ptoken_list, int *pos);
 Node *parseE(Token *ptoken_list, int *pos);
@@ -104,33 +87,6 @@ int main()
 }
 
 // helper methods
-
-// char nextOperation(char *ch)
-// {
-//     while (1)
-//     {
-//         printf("inner while \n");
-//         if (*ch == ' ')
-//             continue;
-//         else if (*ch == '+' || *ch == '-' || *ch == '*' || *ch == '&' || *ch == '|')
-//             return *ch;
-//         else if (*ch == 'x')
-//         {
-//             if (*(ch++) == 'o' && *(ch++) == 'r')
-//                 return *ch;
-//         }
-//         else
-//             break;
-//     }
-// }
-
-char peek(char *p) // looks the other char, but does not move the cursor
-{
-    p++;
-    char c = *p;
-    p--;
-    return c;
-}
 
 int hashFunction(char *p)
 {
@@ -332,7 +288,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
     return token_list; // returns the list of tokens
 }
 
-Node *constructNode(Operator op, int *value, char *name, Node *left, Node *right)
+Node *constructNode(TokenType op, int *value, char *name, Node *left, Node *right)
 {
     Node *node;
     node->op = op;
@@ -346,7 +302,7 @@ Node *constructNode(Operator op, int *value, char *name, Node *left, Node *right
 
 Node *createNode(Token *token, Node *left, Node *right) // calls node constructor and creates node
 {
-    Operator op = token->type;
+    TokenType op = token->type;
     int *value = &token->number;
     char *name = token->name;
     return constructNode(op, value, name, left, right);
