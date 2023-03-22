@@ -37,7 +37,7 @@ typedef struct // Token structure to create tokens
     char *name;
 } Token;
 
-typedef struct // Node structure, it will be used in creating parse trees
+typedef struct Node // Node structure, it will be used in creating parse trees
 {
     TokenType op;
     int *value;
@@ -69,6 +69,7 @@ int main()
 
     printf("input : \n");
     int position = 0;
+    int *ppos = &position;
     char expr[256];
     fgets(expr, 256, stdin);
     int num_tokens = strlen(expr);
@@ -80,12 +81,47 @@ int main()
     }
 
     printf("\n");
+    printf("here\n");
+    Node *pnode = parseE(tokens,ppos);
+    printf("arada\n");
+    printf("%d", *(pnode->value));
+    int res = evaluate(pnode);
+    printf("gecti\n");
+    
+    printf("%d", res);
 
     free(tokens);
     return 45;
 }
 
 // helper methods
+
+// char nextOperation(char *ch)
+// {
+//     while (1)
+//     {
+//         printf("inner while \n");
+//         if (*ch == ' ')
+//             continue;
+//         else if (*ch == '+' || *ch == '-' || *ch == '*' || *ch == '&' || *ch == '|')
+//             return *ch;
+//         else if (*ch == 'x')
+//         {
+//             if (*(ch++) == 'o' && *(ch++) == 'r')
+//                 return *ch;
+//         }
+//         else
+//             break;
+//     }
+// }
+
+char peek(char *p) // looks the other char, but does not move the cursor
+{
+    p++;
+    char c = *p;
+    p--;
+    return c;
+}
 
 int hashFunction(char *p)
 {
@@ -102,7 +138,7 @@ Variable *search(char *pkey) // searches for the var name, if it exists returns 
     int key = hashFunction(pkey);
     while (hashMap[key] != NULL)
     {
-        if (hashMap[key]->key == key)
+        if (strcmp(hashMap[key]->key,pkey)==0)
         {
             return hashMap[key];
         }
@@ -287,24 +323,52 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
     return token_list; // returns the list of tokens
 }
 
+// Node *constructNode(TokenType op, int *value, char *name, Node *left, Node *right)
+// {
+//     Node *node;
+//     node->op = op;
+//     node->value = value;
+//     node->name = name;
+//     node->left = left;
+//     node->right = right;
+//     return node;
+// }
+
+// Node *createNode(Token *token, Node *left, Node *right) // calls node constructor and creates node
+// {
+//     TokenType op = (token->type);
+//     int *value = &(token->number);
+//     char *name = (token->name);
+//     return constructNode(op, value, name, left, right);
+// }
+
 Node *constructNode(TokenType op, int *value, char *name, Node *left, Node *right)
 {
-    Node *node;
+    Node *node = malloc(sizeof(Node));
     node->op = op;
-    node->value = value;
-    node->name = name;
+    node->value = malloc(sizeof(int));
+    *(node->value) = *value;
+    printf("ilk\n");
+    node->name = strdup(name);
+    
     node->left = left;
+    
     node->right = right;
+    printf("son\n");
 
     return node;
 }
 
-Node *createNode(Token *token, Node *left, Node *right) // calls node constructor and creates node
+Node *createNode(Token *token, Node *left, Node *right)
 {
     TokenType op = token->type;
-    int *value = &token->number;
-    char *name = token->name;
-    return constructNode(op, value, name, left, right);
+    int *value = malloc(sizeof(int));
+    *value = token->number;
+    char *name = strdup(token->id);
+    // !!!!!! ID NAME MUHABBETİ
+    printf("construct on\n");
+    Node *node = constructNode(op, value, name, left, right);
+    return node;
 }
 
 // parsing functions
@@ -314,10 +378,14 @@ Node *parseE(Token *ptoken_list, int *pos) // parses expression into terms
     Node *parsing_term = parseT(ptoken_list, pos);
     while (ptoken_list[*pos].type == ADDITION || ptoken_list[*pos].type == SUBTRACTION)
     {
+        Token * op_token = &(ptoken_list[*pos]);
         (*pos)++;
         Node *parsing_term2 = parseT(ptoken_list, pos);
-        parsing_term = createNode(&(ptoken_list[*pos]), parsing_term, parsing_term2);
+        parsing_term = createNode(op_token, parsing_term, parsing_term2);
+        printf("done00");
     }
+    printf("parseE fonksiyonuna cikis\n");
+    return parsing_term;
 }
 
 Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
@@ -329,17 +397,25 @@ Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
         Node *parsing_factor2 = parseF(ptoken_list, pos);
         parsing_factor = createNode(&(ptoken_list[*pos]), parsing_factor, parsing_factor2);
     }
+    printf("parseT fonksiyonuna cikis\n");
     return parsing_factor;
 }
 
 Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
 {
+    printf("%s\n",ptoken_list[*pos].id);
+    printf("%d\n", ptoken_list[*pos].number);
     if (ptoken_list[*pos].type == CONST) // if the current token matches the type, creates node
-        return createNode(&ptoken_list[*pos], NULL, NULL);
-
-    else if (ptoken_list[*pos].type == VAR)
-        return createNode( &ptoken_list[*pos],NULL, NULL);
-
+    {
+        Node *temp = createNode(&(ptoken_list[*pos]), NULL, NULL);
+        (*pos)++;
+        return temp;
+    }
+    else if (ptoken_list[*pos].type == VAR){
+        Node *temp = createNode(&(ptoken_list[*pos]), NULL, NULL);
+        (*pos)++;
+        return temp;
+    }
     else if (ptoken_list[*pos].type == L_PAREN) // if token is l paren, it must be an expression inside of it
     {
         (*pos)++; // it moves the next token
@@ -413,7 +489,7 @@ int evaluate(Node *nodeP)
         }
         *(pLeft->value) = evaluate(nodeP->right);
 
-        return NULL;
+        return 28193798;
     }
 
     // bitwise binary operations
