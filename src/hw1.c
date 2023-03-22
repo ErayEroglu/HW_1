@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
-
+#define HASH_SIZE 1000
 // structure definitions
 
 typedef enum
@@ -61,7 +61,6 @@ Node *constructNode(TokenType op, int *value, char *name, Node *left, Node *righ
 Node *parseF(Token *ptoken_list, int *pos);
 Node *parseT(Token *ptoken_list, int *pos);
 Node *parseE(Token *ptoken_list, int *pos);
-int const HASH_SIZE = 1000;
 Variable *hashMap[HASH_SIZE];
 int hashFunction(char *s);
 
