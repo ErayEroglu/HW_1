@@ -68,7 +68,7 @@ bool errorFlag = false;
 
 int main() // intleri longa çevir!!!!!!
 {
-    // a = a = a sıkıntı çıkarmıyor
+    // a = a = a hata vermiyor
     // a )= 10 hata vermiyor 
     // 8 + 5 + hata vermiyor 
 
