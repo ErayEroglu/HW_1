@@ -69,10 +69,7 @@ int num_tokens;
 
 int main() // intleri longa çevir!!!!!!
 {
-    // a = a = a hata vermiyor
-    // a )= 10 hata vermiyor 
-    // 8 + 5 + hata vermiyor 
-
+    
     Token *tokens = NULL;
     while (true)
     {
