@@ -45,7 +45,7 @@ typedef struct Node // Node structure, it will be used in creating parse trees
     struct Node *right;
 } Node;
 
-typedef struct Variable// struct for a hashtable which will store data for variables
+typedef struct Variable // struct for a hashtable which will store data for variables
 {
     int data;
     char *key;
@@ -64,6 +64,7 @@ Node *parse(Token *ptoken_list, int *pos);
 Variable *hashMap[HASH_SIZE];
 int hashFunction(char *s);
 bool printFlag = true;
+bool errorFlag = false;
 
 int main()
 {
@@ -84,20 +85,25 @@ int main()
         }
 
         printf("\n");
+
         Node *pnode = parse(tokens, ppos);
 
-        
-        int res = evaluate(pnode);
-        if (printFlag)
-            printf("%d\n", res);
-        
+        if (!errorFlag)
+        {
+            int res = evaluate(pnode);
+            if (printFlag)
+                printf("%d\n", res);
+        }
+        else
+        {
+            printf("Error!\n");
+        }
 
-    
         printFlag = true;
+        errorFlag = false;
     }
     free(tokens);
 
-    
     return 45;
 }
 
@@ -137,7 +143,8 @@ Variable *search(char *pkey) // searches for the var name, if it exists returns 
     return NULL;
 }
 
-Variable *createVar(char *key,int data){  // method to create variable
+Variable *createVar(char *key, int data)
+{ // method to create variable
     Variable *var = malloc(sizeof(Variable));
     var->data = data;
     var->key = strdup(key);
@@ -146,7 +153,7 @@ Variable *createVar(char *key,int data){  // method to create variable
 
 void insert(char *key, int data) // inserting function for hashmap
 {
-    Variable *var = createVar(key,data);
+    Variable *var = createVar(key, data);
     int hash_pos = hashFunction(key);
 
     while (hashMap[hash_pos] != NULL)
@@ -367,16 +374,28 @@ Node *createNode(Token *token, Node *left, Node *right)
 
 // parsing functions
 
-Node *parse(Token *ptoken_list, int *pos) 
+Node *parse(Token *ptoken_list, int *pos)
 {
-    Node *temp = parseE(ptoken_list,pos);
-    if (ptoken_list[*pos].type == EQUAL) 
+    Node *temp = parseE(ptoken_list, pos);
+
+    // error check
+    if (temp == NULL)
     {
+        errorFlag = true;
+        return NULL;
+    }
+    if (ptoken_list[*pos].type == EQUAL)
+    {
+        if (temp->op != VAR)
+        {
+            errorFlag = true;
+            return NULL;
+        }
+
         Token *op_token = &(ptoken_list[*pos]);
         (*pos)++;
-        Node *temp2 = parseE(ptoken_list, pos);      
-        temp = createNode(op_token,temp,temp2);
-        
+        Node *temp2 = parseE(ptoken_list, pos);
+        temp = createNode(op_token, temp, temp2);
     }
     return temp;
 }
@@ -384,14 +403,26 @@ Node *parse(Token *ptoken_list, int *pos)
 Node *parseE(Token *ptoken_list, int *pos) // parses expression into terms
 {
     Node *parsing_term = parseT(ptoken_list, pos);
-    if (parsing_term==NULL)
-        printf("Error!");
+
+    // error check
+    if (parsing_term == NULL)
+    {
+        errorFlag = true;
+        return NULL;
+    }
 
     while (ptoken_list[*pos].type == ADDITION || ptoken_list[*pos].type == SUBTRACTION)
     {
         Token *op_token = &(ptoken_list[*pos]);
         (*pos)++;
         Node *parsing_term2 = parseT(ptoken_list, pos);
+        
+        if (parsing_term2 == NULL)
+        {
+            // error check
+            errorFlag = true;
+            return NULL;
+        }
         parsing_term = createNode(op_token, parsing_term, parsing_term2);
     }
 
@@ -402,6 +433,13 @@ Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
 {
     Node *parsing_factor = parseF(ptoken_list, pos);
 
+    // error check
+    if (parsing_factor == NULL)
+    {
+        errorFlag = true;
+        return NULL;
+    }
+    
     while (ptoken_list[*pos].type == MULTIPLICATION)
     {
         Token *op_token = &(ptoken_list[*pos]);
@@ -415,18 +453,18 @@ Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
 
 Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
 {
-    
+
     if (ptoken_list[*pos].type == CONST) // if the current token matches the type, creates node
     {
-        
+
         Node *temp = createNode(&(ptoken_list[*pos]), NULL, NULL);
         (*pos)++;
-        
+        // if (ptoken_list[*pos].type == CONST)
         return temp;
     }
     else if (ptoken_list[*pos].type == VAR)
-    {   
-        insert(ptoken_list[*pos].name,ptoken_list[*pos].number);
+    {
+        insert(ptoken_list[*pos].name, ptoken_list[*pos].number);
         Node *temp = createNode(&(ptoken_list[*pos]), NULL, NULL);
         (*pos)++;
         return temp;
@@ -438,8 +476,11 @@ Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
         // !!! We will probably need an error check here
         // TODO
         //
-        if (temp == NULL) // if there does't exist a statement, return null
+        if (temp == NULL || temp->op == R_PAREN)
+        { // if there does't exist a statement, return null
+            errorFlag = true;
             return NULL;
+        }
         else if (ptoken_list[*pos].type == R_PAREN)
         {
             (*pos)++;
@@ -489,20 +530,21 @@ int evaluate(Node *nodeP)
         }
         return 0;
     }
-    // return -1 means error
+
     else if (nodeP->op == EQUAL)
     {
         Node *pLeft;
         pLeft = nodeP->left;
+
+        // burası muhtemelen silinecek
         // error condition
-        if (pLeft->op != VAR)
-        {
-            // print error
-            return -1;
-        }
+        // if (pLeft->op != VAR)
+        // {
+        //     // print error
+        //     return -1;
+        // }
 
-        Variable* pVar = search(pLeft->name);
-
+        Variable *pVar = search(pLeft->name);
 
         pVar->data = evaluate(nodeP->right);
         printFlag = false;
