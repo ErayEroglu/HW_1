@@ -66,8 +66,12 @@ int hashFunction(char *s);
 bool printFlag = true;
 bool errorFlag = false;
 
-int main()
+int main() // intleri longa çevir!!!!!!
 {
+    // a = a = a sıkıntı çıkarmıyor
+    // a )= 10 hata vermiyor 
+    // 8 + 5 + hata vermiyor 
+
     Token *tokens = NULL;
     while (true)
     {
@@ -78,21 +82,21 @@ int main()
         fgets(expr, 256, stdin);
         int num_tokens = strlen(expr);
         Token *tokens = createToken(expr, &num_tokens);
-        printf("Tokens:\n");
-        for (int i = 0; i < num_tokens; i++)
-        {
-            printf("Token %d: type=%d, id=%s, number=%d\n", i, tokens[i].type, tokens[i].id, tokens[i].number);
-        }
-
-        printf("\n");
+        
+        // printf("Tokens:\n");
+        // for (int i = 0; i < num_tokens; i++)
+        // {
+        //     printf("Token %d: type=%d, id=%s, number=%d\n", i, tokens[i].type, tokens[i].id, tokens[i].number);
+        // }
 
         Node *pnode = parse(tokens, ppos);
-
         if (!errorFlag)
         {
             int res = evaluate(pnode);
             if (printFlag)
+            {
                 printf("%d\n", res);
+            }
         }
         else
         {
@@ -386,7 +390,7 @@ Node *parse(Token *ptoken_list, int *pos)
     }
     if (ptoken_list[*pos].type == EQUAL)
     {
-        if (temp->op != VAR)
+        if (temp->op != VAR || ptoken_list[0].type == L_PAREN)
         {
             errorFlag = true;
             return NULL;
@@ -397,6 +401,10 @@ Node *parse(Token *ptoken_list, int *pos)
         Node *temp2 = parseE(ptoken_list, pos);
         temp = createNode(op_token, temp, temp2);
     }
+    // if (&ptoken_list[*pos] != NULL) {
+    //     errorFlag = true;
+    //     return NULL;
+    // }
     return temp;
 }
 
