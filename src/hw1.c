@@ -65,6 +65,7 @@ Variable *hashMap[HASH_SIZE];
 int hashFunction(char *s);
 bool printFlag = true;
 bool errorFlag = false;
+int num_tokens;
 
 int main() // intleri longa çevir!!!!!!
 {
@@ -80,7 +81,7 @@ int main() // intleri longa çevir!!!!!!
         int *ppos = &position;
         char expr[256];
         fgets(expr, 256, stdin);
-        int num_tokens = strlen(expr);
+        num_tokens = strlen(expr);
         Token *tokens = createToken(expr, &num_tokens);
         
         // printf("Tokens:\n");
@@ -322,8 +323,10 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
             }
             break;
         }
+        
     }
     *token_number = found_tokens;
+
     return token_list; // returns the list of tokens
 }
 
@@ -405,6 +408,12 @@ Node *parse(Token *ptoken_list, int *pos)
     //     errorFlag = true;
     //     return NULL;
     // }
+    if(*pos < num_tokens){
+        errorFlag = true;
+        return NULL;
+    }
+
+
     return temp;
 }
 
@@ -423,6 +432,11 @@ Node *parseE(Token *ptoken_list, int *pos) // parses expression into terms
     {
         Token *op_token = &(ptoken_list[*pos]);
         (*pos)++;
+        if (*pos == num_tokens){
+            //printf("%d", *pos);
+            errorFlag = true;
+            return NULL;
+        }
         Node *parsing_term2 = parseT(ptoken_list, pos);
         
         if (parsing_term2 == NULL)
@@ -453,6 +467,10 @@ Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
         Token *op_token = &(ptoken_list[*pos]);
 
         (*pos)++;
+        if (*pos == num_tokens){
+            errorFlag = true;
+            return NULL;
+        }
         Node *parsing_factor2 = parseF(ptoken_list, pos);
         parsing_factor = createNode(op_token, parsing_factor, parsing_factor2);
     }
