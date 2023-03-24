@@ -646,9 +646,7 @@ Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
     {
         (*pos)++; // it moves the next token
         Node *temp = parseB(ptoken_list, pos);
-        // !!! We will probably need an error check here
-        // TODO
-        //
+        
         if (temp == NULL || temp->op == R_PAREN)
         { // if there does't exist a statement, return null
             errorFlag = true;
@@ -704,8 +702,7 @@ Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
 // method to evaluate the tree
 long evaluate(Node *nodeP)
 {
-
-    // start evaluating at root node, evaluate the tree recursively
+    // starting to evaluate from root node, evaluates the tree recursively
 
     // binary operations
     if (nodeP->op == ADDITION)
@@ -739,17 +736,7 @@ long evaluate(Node *nodeP)
     {
         Node *pLeft;
         pLeft = nodeP->left;
-
-        // burası muhtemelen silinecek
-        // error condition
-        // if (pLeft->op != VAR)
-        // {
-        //     // print error
-        //     return -1;
-        // }
-
         Variable *pVar = search(pLeft->name);
-
         pVar->data = evaluate(nodeP->right);
         printFlag = false;
         return pVar->data;
