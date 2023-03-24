@@ -31,7 +31,7 @@ typedef enum
 typedef struct // Token structure to create tokens
 {
     TokenType type;
-    int number;
+    long number;
     char *id;
     char *name;
 } Token;
@@ -39,7 +39,7 @@ typedef struct // Token structure to create tokens
 typedef struct Node // Node structure, it will be used in creating parse trees
 {
     TokenType op;
-    int *value;
+    long *value;
     char *name;
     struct Node *left;
     struct Node *right;
@@ -47,19 +47,21 @@ typedef struct Node // Node structure, it will be used in creating parse trees
 
 typedef struct Variable // struct for a hashtable which will store data for variables
 {
-    int data;
+    long data;
     char *key;
 } Variable;
 
 // global variables and method declarations
 
 Token *createToken(char *inp_s, int *token_number);
-int evaluate(Node *nodeP);
+long evaluate(Node *nodeP);
 Node *createNode(Token *token, Node *left, Node *right);
-Node *constructNode(TokenType op, int *value, char *name, Node *left, Node *right);
+Node *constructNode(TokenType op, long *value, char *name, Node *left, Node *right);
 Node *parseF(Token *ptoken_list, int *pos);
+Node * parseFnc(Token *ptoken_list, int *pos);
 Node *parseT(Token *ptoken_list, int *pos);
 Node *parseE(Token *ptoken_list, int *pos);
+Node *parseB(Token *ptoken_list, int *pos);
 Node *parse(Token *ptoken_list, int *pos);
 Variable *hashMap[HASH_SIZE];
 unsigned int hashFunction(char *s);
@@ -81,12 +83,24 @@ int main() // intleri longa çevir!!!!!!
         num_tokens = strlen(expr);
         Token *tokens = createToken(expr, &num_tokens);
 
+        if (num_tokens == 0)
+        {
+            continue;
+        }
+
         // printf("Tokens:\n");
         //  for (int i = 0; i < num_tokens; i++)
         //  {
         //      //printf("Token %d: type=%d, id=%s, number=%d, name= %s\n", i, tokens[i].type, tokens[i].id, tokens[i].number, tokens[i].name);
         //  }
-
+        if (tokens == NULL)
+        {
+            printf("Error!\n");
+            errorFlag = false;
+            printFlag = true;
+            continue;
+        }
+        
         Node *pnode = parse(tokens, ppos);
         if (!errorFlag)
         {
@@ -105,19 +119,10 @@ int main() // intleri longa çevir!!!!!!
         errorFlag = false;
     }
     free(tokens);
-
     return 45;
 }
 
 // helper methods
-
-char peek(char *p) // looks the other char, but does not move the cursor
-{
-    p++;
-    char c = *p;
-    p--;
-    return c;
-}
 
 unsigned int hashFunction(char *p)
 {
@@ -157,7 +162,7 @@ Variable *search(char *pkey) // searches for the var name, if it exists returns 
     return NULL;
 }
 
-Variable *createVar(char *key, int data)
+Variable *createVar(char *key, long data)
 { // method to create variable
     Variable *var = malloc(sizeof(Variable));
     var->data = data;
@@ -165,13 +170,11 @@ Variable *createVar(char *key, int data)
     return var;
 }
 
-void insert(char *key, int data) // inserting function for hashmap
+void insert(char *key, long data) // inserting function for hashmap
 {
 
     Variable *var = createVar(key, data);
-
     int hash_pos = hashFunction(key);
-    printf("%d\n",hash_pos);
     while (hashMap[hash_pos] != NULL)
     {
         hash_pos++;
@@ -333,6 +336,11 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
                 }
                 found_tokens++;
             }
+            else 
+            {
+                errorFlag = true;
+                return NULL;
+            }
             break;
         }
     }
@@ -360,18 +368,15 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
 //     return constructNode(op, value, name, left, right);
 // }
 
-Node *constructNode(TokenType op, int *value, char *name, Node *left, Node *right)
+Node *constructNode(TokenType op, long *value, char *name, Node *left, Node *right)
 {
     Node *node = malloc(sizeof(Node));
     node->op = op;
-    node->value = malloc(sizeof(int));
+    node->value = malloc(sizeof(long));
     *(node->value) = *value;
     node->name = strdup(name);
-
     node->left = left;
-
     node->right = right;
-
     return node;
 }
 
@@ -379,7 +384,7 @@ Node *createNode(Token *token, Node *left, Node *right)
 {
 
     TokenType op = token->type;
-    int *value = malloc(sizeof(int));
+    long *value = malloc(sizeof(long));
     *value = token->number;
     if (op == VAR)
     {
@@ -394,7 +399,7 @@ Node *createNode(Token *token, Node *left, Node *right)
 
 Node *parse(Token *ptoken_list, int *pos)
 {
-    Node *temp = parseE(ptoken_list, pos);
+    Node *temp = parseB(ptoken_list, pos);
 
     // error check
     if (temp == NULL)
@@ -412,20 +417,47 @@ Node *parse(Token *ptoken_list, int *pos)
 
         Token *op_token = &(ptoken_list[*pos]);
         (*pos)++;
-        Node *temp2 = parseE(ptoken_list, pos);
+        Node *temp2 = parseB(ptoken_list, pos);
         temp = createNode(op_token, temp, temp2);
     }
     // if (&ptoken_list[*pos] != NULL) {
     //     errorFlag = true;
     //     return NULL;
     // }
-    if (*pos < num_tokens)
-    {
+    if(*pos < num_tokens){
         errorFlag = true;
         return NULL;
     }
 
+
     return temp;
+}
+
+
+Node *parseB(Token *ptoken_list, int *pos){
+    Node *bitwise  = parseE(ptoken_list, pos);
+    
+    if (bitwise == NULL){
+        errorFlag = true;
+        return NULL;
+    }
+    while (ptoken_list[*pos].type == AND || ptoken_list[*pos].type == OR){
+        Token *op_token = &(ptoken_list[*pos]);
+        (*pos)++;
+        if (*pos == num_tokens){
+            errorFlag = true;
+            return NULL;
+        }
+        Node* bitwise_2 = parseE(ptoken_list, pos);
+        if (bitwise_2 == NULL)
+        {
+            // error check
+            errorFlag = true;
+            return NULL;
+        }
+        bitwise = createNode(op_token,bitwise,bitwise_2);
+    }
+    return bitwise;
 }
 
 Node *parseE(Token *ptoken_list, int *pos) // parses expression into terms
@@ -443,14 +475,12 @@ Node *parseE(Token *ptoken_list, int *pos) // parses expression into terms
     {
         Token *op_token = &(ptoken_list[*pos]);
         (*pos)++;
-        if (*pos == num_tokens)
-        {
-            // printf("%d", *pos);
+        if (*pos == num_tokens){
             errorFlag = true;
             return NULL;
         }
         Node *parsing_term2 = parseT(ptoken_list, pos);
-
+        
         if (parsing_term2 == NULL)
         {
             // error check
@@ -465,7 +495,7 @@ Node *parseE(Token *ptoken_list, int *pos) // parses expression into terms
 
 Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
 {
-    Node *parsing_factor = parseF(ptoken_list, pos);
+    Node *parsing_factor = parseFnc(ptoken_list, pos);
 
     // error check
     if (parsing_factor == NULL)
@@ -473,31 +503,136 @@ Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
         errorFlag = true;
         return NULL;
     }
-
+    
     while (ptoken_list[*pos].type == MULTIPLICATION)
     {
         Token *op_token = &(ptoken_list[*pos]);
 
         (*pos)++;
-        if (*pos == num_tokens)
-        {
+        if (*pos == num_tokens){
             errorFlag = true;
             return NULL;
         }
-        Node *parsing_factor2 = parseF(ptoken_list, pos);
+        Node *parsing_factor2 = parseFnc(ptoken_list, pos);
         parsing_factor = createNode(op_token, parsing_factor, parsing_factor2);
     }
     return parsing_factor;
 }
+Node * parseFnc(Token *ptoken_list, int *pos){
+
+    Node *temp ;
+    if(
+        ptoken_list[*pos].type == L_SHIFT || 
+        ptoken_list[*pos].type == R_SHIFT || 
+        ptoken_list[*pos].type == XOR ||
+        ptoken_list[*pos].type == L_ROTATE || 
+        ptoken_list[*pos].type == R_ROTATE
+        )
+        {
+        Token *op_token = &(ptoken_list[*pos]);
+        (*pos)++;
+
+        if (ptoken_list[*pos].type == L_PAREN){
+            (*pos)++;
+        }else{
+            errorFlag = true;
+            return NULL;
+        }
+
+        Node * temp = parseB(ptoken_list, pos);
+
+        if (temp == NULL)
+        {
+        errorFlag = true;
+        return NULL;
+        }
+
+
+        if (ptoken_list[*pos].type == COMMA ){
+             (*pos)++;
+        }else{
+            errorFlag = true;
+            return NULL;
+        }
+
+        Node * temp_2 = parseB(ptoken_list, pos);
+        if (temp == NULL)
+        {
+        errorFlag = true;
+        return NULL;
+        }
+
+
+        if (ptoken_list[*pos].type == R_PAREN){
+            (*pos)++;
+        }else{
+            errorFlag = true;
+            return NULL;
+        }
+
+        temp = createNode(op_token, temp, temp_2);
+        return temp;
+    }
+
+    else {
+        temp = parseF(ptoken_list, pos);
+        return temp ; 
+    }
+}
+
+// Node *parseNot(Token *ptoken_list, int *pos)
+// {
+//     Node *temp;
+//     if (ptoken_list[*pos].type == NOT)
+//     {
+//         Token *op_token = &(ptoken_list[*pos]);
+//         (*pos)++;
+
+//         if (ptoken_list[*pos].type == L_PAREN){
+//             (*pos)++;
+//         }else{
+//             errorFlag = true;
+//             return NULL;
+//         }
+
+//         Node * temp = parseB(ptoken_list, pos);
+
+//         if (temp == NULL)
+//         {
+//         errorFlag = true;
+//         return NULL;
+//         }
+
+//         if (ptoken_list[*pos].type == R_PAREN){
+//             (*pos)++;
+//         }else{
+//             errorFlag = true;
+//             return NULL;
+//         }
+
+//         temp = createNode(op_token,temp,NULL);
+//         return temp;
+
+//     }
+//     else 
+//     {
+//         temp = parseF(ptoken_list,pos);
+//         return temp;
+//     }
+
+
+
+// }
 
 Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
 {
-
+    
     if (ptoken_list[*pos].type == CONST) // if the current token matches the type, creates node
     {
 
         Node *temp = createNode(&(ptoken_list[*pos]), NULL, NULL);
         (*pos)++;
+        // if (ptoken_list[*pos].type == CONST)
         return temp;
     }
     else if (ptoken_list[*pos].type == VAR)
@@ -510,7 +645,7 @@ Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
     else if (ptoken_list[*pos].type == L_PAREN) // if token is l paren, it must be an expression inside of it
     {
         (*pos)++; // it moves the next token
-        Node *temp = parseE(ptoken_list, pos);
+        Node *temp = parseB(ptoken_list, pos);
         // !!! We will probably need an error check here
         // TODO
         //
@@ -529,6 +664,37 @@ Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
             return NULL;
         }
     }
+    else if (ptoken_list[*pos].type == NOT)
+    {
+        Token *op_token = &(ptoken_list[*pos]);
+        (*pos)++;
+
+        if (ptoken_list[*pos].type == L_PAREN){
+            (*pos)++;
+        }else{
+            errorFlag = true;
+            return NULL;
+        }
+
+        Node * temp = parseB(ptoken_list, pos);
+
+        if (temp == NULL)
+        {
+        errorFlag = true;
+        return NULL;
+        }
+
+        if (ptoken_list[*pos].type == R_PAREN){
+            (*pos)++;
+        }else{
+            errorFlag = true;
+            return NULL;
+        }
+
+        temp = createNode(op_token,temp,NULL);
+        return temp;
+
+    }
     else
     {
         return NULL;
@@ -536,7 +702,7 @@ Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
 }
 
 // method to evaluate the tree
-int evaluate(Node *nodeP)
+long evaluate(Node *nodeP)
 {
 
     // start evaluating at root node, evaluate the tree recursively
@@ -601,8 +767,7 @@ int evaluate(Node *nodeP)
     // function with one parameter
     else if (nodeP->op == NOT)
     {
-        // update after parse implementation
-        return 0;
+        return ~(evaluate(nodeP->left));
     }
 
     // functions with two parameters
@@ -611,7 +776,6 @@ int evaluate(Node *nodeP)
         Node *pLeft = nodeP->left;
         Node *pRight = nodeP->right;
         bool syntaxError = false;
-        if (pLeft->op != VAR || pLeft->op != CONST)
             switch (nodeP->op)
             {
             case XOR:
@@ -626,6 +790,8 @@ int evaluate(Node *nodeP)
             case R_ROTATE:
                 return (evaluate(nodeP->left) >> evaluate(nodeP->right)) | (evaluate(nodeP->left) << (32 - evaluate(nodeP->right)));
             default:
+                // -1 error mu returnliyor???
+                // TODO
                 return -1;
                 break;
             }
