@@ -62,30 +62,30 @@ Node *parseT(Token *ptoken_list, int *pos);
 Node *parseE(Token *ptoken_list, int *pos);
 Node *parse(Token *ptoken_list, int *pos);
 Variable *hashMap[HASH_SIZE];
-int hashFunction(char *s);
+unsigned int hashFunction(char *s);
 bool printFlag = true;
 bool errorFlag = false;
 int num_tokens;
 
 int main() // intleri longa çevir!!!!!!
 {
-    
+
     Token *tokens = NULL;
     while (true)
     {
         printf("input : \n");
         int position = 0;
         int *ppos = &position;
-        char expr[256];
-        fgets(expr, 256, stdin);
+        char expr[256 * sizeof(char)];
+        fgets(expr, 256 * sizeof(char), stdin);
         num_tokens = strlen(expr);
         Token *tokens = createToken(expr, &num_tokens);
-        
+
         // printf("Tokens:\n");
-        // for (int i = 0; i < num_tokens; i++)
-        // {
-        //     printf("Token %d: type=%d, id=%s, number=%d\n", i, tokens[i].type, tokens[i].id, tokens[i].number);
-        // }
+        //  for (int i = 0; i < num_tokens; i++)
+        //  {
+        //      //printf("Token %d: type=%d, id=%s, number=%d, name= %s\n", i, tokens[i].type, tokens[i].id, tokens[i].number, tokens[i].name);
+        //  }
 
         Node *pnode = parse(tokens, ppos);
         if (!errorFlag)
@@ -119,15 +119,27 @@ char peek(char *p) // looks the other char, but does not move the cursor
     return c;
 }
 
-int hashFunction(char *p)
+unsigned int hashFunction(char *p)
 {
     char *s = NULL;
     s = p;
-    int hashval;
+    unsigned int hashval;
     for (hashval = 0; *s != '\0'; s++)
         hashval = *s + 31 * hashval;
     return hashval % HASH_SIZE;
+
+    
 }
+
+// char *s = p;
+    // int hashval = 0;
+    // int len = strlen(p);
+    // for (int i = 0; i < len; i++)    
+    // {
+    //     hashval = (int)*s + 31 * hashval;
+    //     s++;
+    // }
+    //return hashval % HASH_SIZE;
 
 Variable *search(char *pkey) // searches for the var name, if it exists returns the variable
 {
@@ -155,14 +167,17 @@ Variable *createVar(char *key, int data)
 
 void insert(char *key, int data) // inserting function for hashmap
 {
-    Variable *var = createVar(key, data);
-    int hash_pos = hashFunction(key);
 
+    Variable *var = createVar(key, data);
+
+    int hash_pos = hashFunction(key);
+    printf("%d\n",hash_pos);
     while (hashMap[hash_pos] != NULL)
     {
         hash_pos++;
-        hash_pos %= HASH_SIZE;
+        hash_pos = hash_pos % HASH_SIZE;
     }
+    
     hashMap[hash_pos] = var;
 }
 
@@ -320,7 +335,6 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
             }
             break;
         }
-        
     }
     *token_number = found_tokens;
 
@@ -405,11 +419,11 @@ Node *parse(Token *ptoken_list, int *pos)
     //     errorFlag = true;
     //     return NULL;
     // }
-    if(*pos < num_tokens){
+    if (*pos < num_tokens)
+    {
         errorFlag = true;
         return NULL;
     }
-
 
     return temp;
 }
@@ -429,13 +443,14 @@ Node *parseE(Token *ptoken_list, int *pos) // parses expression into terms
     {
         Token *op_token = &(ptoken_list[*pos]);
         (*pos)++;
-        if (*pos == num_tokens){
-            //printf("%d", *pos);
+        if (*pos == num_tokens)
+        {
+            // printf("%d", *pos);
             errorFlag = true;
             return NULL;
         }
         Node *parsing_term2 = parseT(ptoken_list, pos);
-        
+
         if (parsing_term2 == NULL)
         {
             // error check
@@ -458,13 +473,14 @@ Node *parseT(Token *ptoken_list, int *pos) // parses term into factors
         errorFlag = true;
         return NULL;
     }
-    
+
     while (ptoken_list[*pos].type == MULTIPLICATION)
     {
         Token *op_token = &(ptoken_list[*pos]);
 
         (*pos)++;
-        if (*pos == num_tokens){
+        if (*pos == num_tokens)
+        {
             errorFlag = true;
             return NULL;
         }
@@ -482,7 +498,6 @@ Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
 
         Node *temp = createNode(&(ptoken_list[*pos]), NULL, NULL);
         (*pos)++;
-        // if (ptoken_list[*pos].type == CONST)
         return temp;
     }
     else if (ptoken_list[*pos].type == VAR)
