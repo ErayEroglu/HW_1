@@ -31,7 +31,7 @@ typedef enum
 typedef struct // Token structure to create tokens
 {
     TokenType type;
-    long number;
+    long long int number;
     char *id;
     char *name;
 } Token;
@@ -39,7 +39,7 @@ typedef struct // Token structure to create tokens
 typedef struct Node // Node structure, it will be used in creating parse trees
 {
     TokenType op;
-    long *value;
+    long long int *value;
     char *name;
     struct Node *left;
     struct Node *right;
@@ -47,16 +47,16 @@ typedef struct Node // Node structure, it will be used in creating parse trees
 
 typedef struct Variable // struct for a hashtable which will store data for variables
 {
-    long data;
+    long long int data;
     char *key;
 } Variable;
 
 // global variables and method declarations
 
 Token *createToken(char *inp_s, int *token_number);
-long evaluate(Node *nodeP);
+long long int evaluate(Node *nodeP);
 Node *createNode(Token *token, Node *left, Node *right);
-Node *constructNode(TokenType op, long *value, char *name, Node *left, Node *right);
+Node *constructNode(TokenType op, long long int *value, char *name, Node *left, Node *right);
 Node *parseF(Token *ptoken_list, int *pos);
 Node * parseFnc(Token *ptoken_list, int *pos);
 Node *parseT(Token *ptoken_list, int *pos);
@@ -162,7 +162,7 @@ Variable *search(char *pkey) // searches for the var name, if it exists returns 
     return NULL;
 }
 
-Variable *createVar(char *key, long data)
+Variable *createVar(char *key, long long int data)
 { // method to create variable
     Variable *var = malloc(sizeof(Variable));
     var->data = data;
@@ -170,7 +170,7 @@ Variable *createVar(char *key, long data)
     return var;
 }
 
-void insert(char *key, long data) // inserting function for hashmap
+void insert(char *key, long long int data) // inserting function for hashmap
 {
 
     Variable *var = createVar(key, data);
@@ -267,7 +267,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
         default:
             if (isdigit(*pcurrent_char))
             {
-                int num = atoi(pcurrent_char);
+                long long  num = strtoll(pcurrent_char,NULL,10);
                 pcurrent_char++;
                 while (isdigit(*pcurrent_char)) // if it is a number, it might be consisted of more than one digit
                 {                               // so it will be iterated until reaching a non-digit char
@@ -368,11 +368,11 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
 //     return constructNode(op, value, name, left, right);
 // }
 
-Node *constructNode(TokenType op, long *value, char *name, Node *left, Node *right)
+Node *constructNode(TokenType op, long long int *value, char *name, Node *left, Node *right)
 {
     Node *node = malloc(sizeof(Node));
     node->op = op;
-    node->value = malloc(sizeof(long));
+    node->value = malloc(sizeof(long long int));
     *(node->value) = *value;
     node->name = strdup(name);
     node->left = left;
@@ -384,7 +384,7 @@ Node *createNode(Token *token, Node *left, Node *right)
 {
 
     TokenType op = token->type;
-    long *value = malloc(sizeof(long));
+    long long int *value = malloc(sizeof(long long int));
     *value = token->number;
     if (op == VAR)
     {
@@ -700,7 +700,7 @@ Node *parseF(Token *ptoken_list, int *pos) // parsing factor method
 }
 
 // method to evaluate the tree
-long evaluate(Node *nodeP)
+long long int evaluate(Node *nodeP)
 {
     // starting to evaluate from root node, evaluates the tree recursively
 
@@ -729,7 +729,7 @@ long evaluate(Node *nodeP)
         {
             return var->data;
         }
-        return 0;
+        return 0LL;
     }
 
     else if (nodeP->op == EQUAL)
@@ -773,9 +773,10 @@ long evaluate(Node *nodeP)
             case R_SHIFT:
                 return evaluate(nodeP->left) >> evaluate(nodeP->right);
             case L_ROTATE:
-                return (evaluate(nodeP->left) << evaluate(nodeP->right)) | (evaluate(nodeP->left) >> (32 - evaluate(nodeP->right)));
+                return (evaluate(nodeP->left) << evaluate(nodeP->right)) | (evaluate(nodeP->left) >> (32LL - evaluate(nodeP->right)));
             case R_ROTATE:
                 return (evaluate(nodeP->left) >> evaluate(nodeP->right)) | (evaluate(nodeP->left) << (32 - evaluate(nodeP->right)));
+                // return (evaluate(nodeP->left) >> evaluate(nodeP->right)) | (evaluate(nodeP->left) << (64 - evaluate(nodeP->right)));
             default:
                 // -1 error mu returnliyor???
                 // TODO
