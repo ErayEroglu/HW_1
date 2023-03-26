@@ -379,7 +379,17 @@ Node *parse(Token *ptoken_list, int *pos) // main parsing method, calls parseB
 
         Token *op_token = &(ptoken_list[*pos]);
         (*pos)++;
+        if (*pos == num_tokens)
+        {
+            errorFlag = true;
+            return NULL;
+        }
         Node *temp2 = parseB(ptoken_list, pos);
+        if (temp == NULL)
+        {
+            errorFlag = true;
+            return NULL;
+        }
         temp = createNode(op_token, temp, temp2);
     }
     if (*pos < num_tokens)
