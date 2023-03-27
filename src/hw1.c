@@ -165,7 +165,7 @@ void insert(char *key, long long int data) // inserting function for hashmap
     hashMap[hash_pos] = var;
 }
 
-Token *createToken(char *inp_s, int *token_number) // creates token according to the given input string, one token each time
+Token *createToken(char *inp_s, int *token_number) // creates token according to the given input string
 {                                                  // returns the list of tokens
     int found_tokens = 0;
     int length = strlen(inp_s);
