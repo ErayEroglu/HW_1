@@ -12,7 +12,7 @@ typedef enum // Token types which will be needed in lexical analysis
     CONST,
     VAR,
     COMMA,
-    ADDITION,
+    ADDITION,   
     SUBTRACTION,
     MULTIPLICATION,
     AND,
