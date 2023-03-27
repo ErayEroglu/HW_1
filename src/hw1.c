@@ -327,7 +327,9 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
     }
     *token_number = found_tokens;
 
-    return token_list; // returns the list of tokens
+    // reallocates the memory to avoid memory leak
+    token_list = (Token*) realloc(token_list,(*token_number) * sizeof(Token));  // at first this memory was equal to length of array * size of token 
+    return token_list; // returns the list of tokens                            
 }
 
 Node *constructNode(TokenType op, long long int *value, char *name, Node *left, Node *right) // makes the adjustments for a node
@@ -364,7 +366,7 @@ Node *parse(Token *ptoken_list, int *pos) // main parsing method, calls parseB
     Node *temp = parseB(ptoken_list, pos);
 
     // error check
-    if (temp == NULL)
+    if (temp == NULL)  // if other parsing functions return NULL, there must be something wrong
     {
         errorFlag = true;
         return NULL;
@@ -379,20 +381,23 @@ Node *parse(Token *ptoken_list, int *pos) // main parsing method, calls parseB
 
         Token *op_token = &(ptoken_list[*pos]);
         (*pos)++;
-        if (*pos == num_tokens)
-        {
+
+        if (*pos == num_tokens)  // if number of tokens is equal to the index of token list, that means the rest of equation is missing
+        {                        // it is a different error check
             errorFlag = true;
             return NULL;
         }
+
         Node *temp2 = parseB(ptoken_list, pos);
-        if (temp == NULL)
+
+        if (temp == NULL)  // similar with the first error check
         {
             errorFlag = true;
             return NULL;
         }
         temp = createNode(op_token, temp, temp2);
     }
-    if (*pos < num_tokens)
+    if (*pos < num_tokens)  // if at the end of assignment operation we didn't reach the last pos of token list, that means an error
     {
         errorFlag = true;
         return NULL;
@@ -401,8 +406,8 @@ Node *parse(Token *ptoken_list, int *pos) // main parsing method, calls parseB
     return temp;
 }
 
-Node *parseB(Token *ptoken_list, int *pos) // looks for bitwise and and bitwise operations, and creates the nodess
-{
+Node *parseB(Token *ptoken_list, int *pos) // looks for bitwise and and bitwise operations, and creates the nodes
+{                                          // error checks are very similar
     Node *bitwise = parseE(ptoken_list, pos);
 
     // error check
@@ -447,11 +452,14 @@ Node *parseE(Token *ptoken_list, int *pos) // parses expression into terms, look
     {
         Token *op_token = &(ptoken_list[*pos]);
         (*pos)++;
+
+        // error check
         if (*pos == num_tokens)
         {
             errorFlag = true;
             return NULL;
         }
+
         Node *parsing_term2 = parseT(ptoken_list, pos);
 
         if (parsing_term2 == NULL)
@@ -482,6 +490,8 @@ Node *parseT(Token *ptoken_list, int *pos) // parses term into factors, looks fo
         Token *op_token = &(ptoken_list[*pos]);
 
         (*pos)++;
+
+        // error check
         if (*pos == num_tokens)
         {
             errorFlag = true;
