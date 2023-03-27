@@ -259,6 +259,7 @@ Token *createToken(char *inp_s, int *token_number) // creates token according to
                 token_list[found_tokens].number = num;
                 found_tokens++;
             }
+
             else if (isalpha(*pcurrent_char)) // if it is a word, it might be consisted of more than one letter
             {
                 char char_name[256];
@@ -406,7 +407,7 @@ Node *parse(Token *ptoken_list, int *pos) // main parsing method, calls parseB
     return temp;
 }
 
-Node *parseB(Token *ptoken_list, int *pos) // looks for bitwise and and bitwise operations, and creates the nodes
+Node *parseB(Token *ptoken_list, int *pos) // looks for bitwise and ,and bitwise or operations, after that creates the nodes
 {                                          // error checks are very similar
     Node *bitwise = parseE(ptoken_list, pos);
 
