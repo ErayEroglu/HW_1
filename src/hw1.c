@@ -78,7 +78,13 @@ void main()
         int position = 0; // an int variable to keep the index of position during the parsing operations
         int *ppos = &position;
         char expr[256]; // input is stored in char array
-        fgets(expr, 256, stdin);
+        char* s = fgets(expr, 256, stdin);
+        
+        if (s == NULL) 
+        {
+            break;
+        }
+        
         num_tokens = strlen(expr);
         Token *tokens = createToken(expr, &num_tokens); // converts the given string to list of tokens
 
