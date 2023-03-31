@@ -79,9 +79,12 @@ void main()
         int *ppos = &position;
         char expr[256]; // input is stored in char array
         char* s = fgets(expr, 256, stdin);
-        
-        if (s == NULL) 
+        if (s[strlen(s) - 2] != '\n') 
         {
+            printf("\n");
+        }
+        if (s == NULL) 
+        {   
             break;
         }
         
@@ -117,6 +120,7 @@ void main()
 
         printFlag = true;
         errorFlag = false;
+        
     }
     free(tokens); // frees the memory
 }
