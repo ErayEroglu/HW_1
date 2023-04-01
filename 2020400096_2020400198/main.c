@@ -78,6 +78,7 @@ void main()
         int position = 0; // an int variable to keep the index of position during the parsing operations
         int *ppos = &position;
         char expr[260]; // input is stored in char array
+        printf("> ");
         char* s = fgets(expr, 260, stdin);
         
         if (s == NULL) 
