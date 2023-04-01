@@ -28,52 +28,52 @@ Now we can discuss the algorithm. It has three main parts: Lexical analysis, par
  	It wasn’t an easy task for us to implement an interpreter. Constructing the algorithm was hard and took a considerable amount of time. Coding the parseF() was the hardest part of the program. It might have taken less time if we had been coding in Java, however, I enjoyed the flexibility of C. This flexibility sometimes caused problems but generally, we enjoyed coding in C. But as the C compiler isn’t as reliable as the Java compiler, debugging was a bit hard, maybe if we had been more experienced at coding in C it would have been easier. Detecting errors was very tricky, it would have been very helpful if we’ve had more example inputs. Trying to cover whole syntax errors was like another project, and we hope we successfully covered them all. In addition to these points; the description was clear, and we didn’t have difficulties understanding the task, also Piazza questions helped us to find bugs in our program. To sum up, at the beginning, the project seemed very hard and it was so up until reaching some point. After understanding how parsing should be done in theory, implementing was relatively easy. At the end of the day, we think it was a good and satisfying experience.
 Input and Output Examples:
 
+Input and Output Examples:
+
 First example:
->> x = 4
->> x * 2
+> x = 4
+> x * 2
 8
->> y = 3 * x
->> y
+> y = 3 * x
+> y
 12
->> x – y
+> x – y
 -4
->> <Ctrl -D>
+> <Ctrl -D>
 Second example:
->> x = 15 15 
+> x = 15 15 
 Error!
->> A
+> LEDZEPPELIN
 0
->> LEDZEPPELIN
-0
->> a                 =                                    87
->> a
+> a                 =                                    87
+> a
 87
->> <Ctrl -D>
+> <Ctrl -D>
 
 Third example:
->> Z = 77 – 8
->> x = not(not (2) * z
+> z = 77 – 8
+> x = not(not (2) * z
 Error!
->> x = not(not (2)) * z
->> x
+> x = not(not (2)) * z
+> x
 138
->> z = 2
->> y = z + (-5)
+> z = 2
+> y = z + (-5)
 Error!
->> y
+> y
 0
->> <Ctrl -D>
+> <Ctrl -D>
 
 Fourth example:
->> Eray = ls (4,2)
->> Berke = 15
->> f = Eray – berke
->>f
+> Eray = ls (4,2)
+> Berke = 15
+> f = Eray – berke
+>f
 16
->> k = Eray – Berke
->> k 
+> k = Eray – Berke
+> k 
 1
->> Eray –
+> Eray –
 Error!
->> <Ctrl -D>
+> <Ctrl -D>
 
